@@ -26,4 +26,20 @@ $taskDag = (new TaskGraph())
 
 Amp\Loop::run($taskDag); // will output "1234"
 ```
+
+The visualization of the execution graph will be following:
+```text
+     +------+
+   +-+Task 1+-+
+   | +------+ |
+   |          |
++--v---+  +---v--+
+|Task 2|  |Task 3|
++--+---+  +---+--+
+   |          |
+   | +------+ |
+   +->Task 4<-+
+     +------+
+
+```
   
