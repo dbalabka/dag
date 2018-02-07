@@ -10,7 +10,7 @@ namespace Amp;
 
 class TaskGraph implements TaskInterface
 {
-    private $tasks;
+    private $tasks = [];
     private $name;
 
     /**
@@ -18,16 +18,15 @@ class TaskGraph implements TaskInterface
      *
      * @param array|ClosureTask[] $tasks
      */
-    public function __construct(array $tasks, string $name = '')
+    public function __construct(array $tasks = [], string $name = '')
     {
-        $this->tasks = array_map('\Amp\TaskPromise::create', $tasks);
-        $this->setTaskDependencies($this->tasks);
+        $this->tasks = $tasks;
         $this->name = $name;
     }
 
     public function run(...$args)
     {
-        yield $this->tasks;
+        yield $this->getTaskPromises();
     }
 
     /**
@@ -50,6 +49,13 @@ class TaskGraph implements TaskInterface
         }
     }
 
+    private function getTaskPromises()
+    {
+        $promises = array_map('\Amp\TaskPromise::create', $this->tasks);
+        $this->setTaskDependencies($promises);
+        return $promises;
+    }
+
     public function __invoke(...$args)
     {
         return $this->run(...$args);
@@ -63,5 +69,25 @@ class TaskGraph implements TaskInterface
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function hasTask(TaskInterface $task) : bool
+    {
+        return array_key_exists($task->getName(), $this->tasks);
+    }
+
+    public function addTask(TaskInterface $task) : TaskGraph
+    {
+        if ($this->hasTask($task)) {
+            throw new InvalidArgumentException(sprintf('Task "%s" already added', $task->getName()));
+        }
+        $this->tasks[$task->getName()] = $task;
+        return $this;
+    }
+
+    public function setTasks(array $tasks) : TaskGraph
+    {
+        array_map([$this, 'addTask'], $tasks);
+        return $this;
     }
 }
