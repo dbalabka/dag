@@ -9,7 +9,7 @@
 namespace Amp;
 
 
-abstract class AbstractTask implements TaskInterface
+abstract class AbstractTask implements Task
 {
     /**
      * @var TaskContextInterface

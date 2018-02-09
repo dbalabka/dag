@@ -8,7 +8,7 @@
 
 namespace Amp;
 
-interface TaskInterface
+interface Task
 {
     public function run(...$args);
     public function __invoke(...$args);

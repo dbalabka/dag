@@ -8,7 +8,7 @@
 
 namespace Amp;
 
-class TaskGraph implements TaskInterface
+class TaskGraph implements Task
 {
     private $tasks = [];
     private $name;
@@ -71,12 +71,12 @@ class TaskGraph implements TaskInterface
         return $this->name;
     }
 
-    public function hasTask(TaskInterface $task) : bool
+    public function hasTask(Task $task) : bool
     {
         return array_key_exists($task->getName(), $this->tasks);
     }
 
-    public function addTask(TaskInterface $task) : TaskGraph
+    public function addTask(Task $task) : TaskGraph
     {
         if ($this->hasTask($task)) {
             throw new InvalidArgumentException(sprintf('Task "%s" already added', $task->getName()));
