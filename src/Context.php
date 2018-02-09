@@ -9,7 +9,7 @@
 namespace Amp;
 
 
-interface TaskContextInterface
+interface Context
 {
 
 }

@@ -8,7 +8,7 @@
 
 namespace Amp;
 
-class ClosureTask extends AbstractTask
+class ClosureTask implements Task
 {
     /**
      * @var \Closure
@@ -16,21 +16,35 @@ class ClosureTask extends AbstractTask
     private $closure;
 
     /**
+     * @var Context
+     */
+    private $context;
+
+
+    /**
      * ClosureTask constructor.
      *
-     * @param string                    $name
-     * @param \Closure                  $closure
-     * @param array                     $deps
-     * @param TaskContextInterface|null $context
+     * @param \Closure     $closure
+     * @param Context|null $context
      */
-    public function __construct(string $name, \Closure $closure, array $deps = [], TaskContextInterface $context = null)
+    public function __construct(\Closure $closure, Context $context = null)
     {
-        parent::__construct($name, $deps, $context);
         $this->closure = $closure;
+        $this->context = $context ?? new DefaultContext();
     }
 
     public function run(...$args)
     {
         return $this->closure->call($this->getContext(), ...$args);
+    }
+
+    protected function getContext(): Context
+    {
+        return $this->context;
+    }
+
+    public function __invoke(...$args)
+    {
+        return $this->run(...$args);
     }
 }

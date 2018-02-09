@@ -12,6 +12,4 @@ interface Task
 {
     public function run(...$args);
     public function __invoke(...$args);
-    public function getDependencies(): array;
-    public function getName(): string;
 }
