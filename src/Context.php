@@ -8,10 +8,8 @@
 
 namespace Amp;
 
-interface TaskInterface
+
+interface Context
 {
-    public function run(...$args);
-    public function __invoke(...$args);
-    public function getDependencies(): array;
-    public function getName(): string;
+
 }

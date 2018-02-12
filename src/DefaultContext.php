@@ -9,7 +9,7 @@
 namespace Amp;
 
 
-interface TaskContextInterface
+class DefaultContext implements Context
 {
 
 }

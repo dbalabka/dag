@@ -8,8 +8,8 @@
 
 namespace Amp;
 
-
-class TaskContext implements TaskContextInterface
+interface Task
 {
-
+    public function run(...$args);
+    public function __invoke(...$args);
 }

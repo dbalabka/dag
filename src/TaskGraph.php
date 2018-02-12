@@ -8,20 +8,17 @@
 
 namespace Amp;
 
-class TaskGraph implements TaskInterface
+class TaskGraph implements Task
 {
     private $tasks = [];
-    private $name;
+    private $dependencies = [];
 
     /**
-     * ClosureTask dag constructor.
-     *
-     * @param array|ClosureTask[] $tasks
+     * @param array|Task[] $tasks
      */
-    public function __construct(array $tasks = [], string $name = '')
+    public function __construct(array $tasks = [])
     {
-        $this->tasks = $tasks;
-        $this->name = $name;
+        $this->setTasks($tasks);
     }
 
     public function run(...$args)
@@ -36,23 +33,36 @@ class TaskGraph implements TaskInterface
      *
      * @return void
      */
-    private function setTaskDependencies($tasksPromises)
+    private function setPromisesDependencies($tasksPromises)
     {
-        // TODO: check cyclic dependencies (see https://en.wikipedia.org/wiki/Topological_sorting)
         foreach ($tasksPromises as $tasksPromise) {
-            $depNames = $tasksPromise->getTask()->getDependencies();
-            $depPromies = array_filter($tasksPromises, function ($tasksPromise) use ($depNames) {
+            $depNames = $this->getTaskDependencies($tasksPromise->getTask());
+            $depPromises = array_filter($tasksPromises, function ($tasksPromise) use ($depNames) {
                 /** @var TaskPromise $tasksPromise */
-                return in_array($tasksPromise->getTask()->getName(), $depNames, true);
+                return in_array($this->getTaskName($tasksPromise->getTask()), $depNames, true);
             });
-            $tasksPromise->setDependencies($depPromies);
+            $tasksPromise->setDependencies($depPromises);
         }
+    }
+
+    public function getTaskDependencies(Task $task)
+    {
+        return $this->dependencies[$this->getTaskName($task)];
+    }
+
+    public function getTaskName(Task $task)
+    {
+        $name = array_search($task, $this->tasks, true);
+        if ($name === false) {
+            throw new InvalidArgumentException(sprintf('Task "%s" was not found', $name));
+        }
+        return $name;
     }
 
     private function getTaskPromises()
     {
         $promises = array_map('\Amp\TaskPromise::create', $this->tasks);
-        $this->setTaskDependencies($promises);
+        $this->setPromisesDependencies($promises);
         return $promises;
     }
 
@@ -61,27 +71,20 @@ class TaskGraph implements TaskInterface
         return $this->run(...$args);
     }
 
-    public function getDependencies(): array
+    public function hasTask(string $name) : bool
     {
-        return [];
+        return array_key_exists($name, $this->tasks);
     }
 
-    public function getName(): string
+    public function addTask(string $name, Task $task, array $dependencies = []) : TaskGraph
     {
-        return $this->name;
-    }
-
-    public function hasTask(TaskInterface $task) : bool
-    {
-        return array_key_exists($task->getName(), $this->tasks);
-    }
-
-    public function addTask(TaskInterface $task) : TaskGraph
-    {
-        if ($this->hasTask($task)) {
-            throw new InvalidArgumentException(sprintf('Task "%s" already added', $task->getName()));
+        // TODO: check cyclic dependencies (see https://en.wikipedia.org/wiki/Topological_sorting)
+        if ($this->hasTask($name)) {
+            throw new InvalidArgumentException(sprintf('Task "%s" already added', $name));
         }
-        $this->tasks[$task->getName()] = $task;
+        $this->tasks[$name] = $task;
+        $this->dependencies[$name] = $dependencies;
+
         return $this;
     }
 
